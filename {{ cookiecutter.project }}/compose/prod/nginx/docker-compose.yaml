@@ -1,0 +1,13 @@
+volumes:
+  {{ cookiecutter.project }}_static_volume:  # 共享静态文件卷
+  {{ cookiecutter.project }}_media_volume:  # 共享媒体文件卷
+
+services:
+  # Nginx服务
+  nginx:
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro  # 挂载配置文件，ro表示只读
+      - {{ cookiecutter.project }}_static_volume:/static/{{ cookiecutter.project }}/  # 挂载静态文件卷
+      - {{ cookiecutter.project }}_media_volume:/media/{{ cookiecutter.project }}/  # 挂载静态文件卷

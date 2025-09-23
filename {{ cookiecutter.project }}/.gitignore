@@ -1,0 +1,28 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+.idea
+
+# database
+*.sqlite3*
+
+# temporary files
+*.toml~
+
+# env
+*.env
+
+# logs
+*.log
+log/
+
+media/
+staticfiles/

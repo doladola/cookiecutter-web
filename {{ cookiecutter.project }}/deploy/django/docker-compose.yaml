@@ -1,0 +1,30 @@
+networks:
+  nginx_net:
+    external: true
+
+volumes:
+  site1_static:
+    name: site1_static
+  site1_media:
+    name: site1_media
+  # 数据库卷示例（可选）
+  site1_db_data:
+
+services:
+  site1:
+    image: your-django-site1:latest
+    container_name: site1
+    env_file:
+      - ../.env
+    working_dir: /app
+    command: gunicorn config.wsgi:application -b 0.0.0.0:8000 --workers 4
+    expose:
+      - "8000"
+    volumes:
+      - site1_static:/app/staticfiles
+      - site1_media:/app/media
+    networks:
+      - nginx_net
+    restart: unless-stopped
+
+  # 可选 PostgreSQL / Redis 等，此处略

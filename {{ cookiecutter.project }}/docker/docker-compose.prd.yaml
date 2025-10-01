@@ -1,0 +1,147 @@
+networks:
+  nginx-network:
+    external: true
+  {{ cookiecutter.project }}-network:
+    driver: bridge
+    internal: true
+
+volumes:
+  {{ cookiecutter.project }}_static:
+    name: {{ cookiecutter.project }}_static
+  {{ cookiecutter.project }}_media:
+    name: {{ cookiecutter.project }}_media
+  {{ cookiecutter.project }}_db:
+    name: {{ cookiecutter.project }}_db
+  {{ cookiecutter.project }}_redis:
+    name: {{ cookiecutter.project }}_redis
+
+services:
+  {{ cookiecutter.project }}-nginx:
+    image: nginx:1.27-alpine
+    container_name: {{ cookiecutter.project }}-nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - {{ cookiecutter.project }}_static:/var/www/static
+      - {{ cookiecutter.project }}_media:/var/www/media
+    networks:
+      - nginx-network
+      - {{ cookiecutter.project }}-network
+    depends_on:
+      web:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "nginx -t >/dev/null 2>&1 || exit 1"] 
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    container_name: {{ cookiecutter.project }}-db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME:-{{ cookiecutter.project }}}
+      POSTGRES_USER: ${DB_USER:-{{ cookiecutter.project }}}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-{{ cookiecutter.project }}}
+    volumes:
+      - {{ cookiecutter.project }}_db:/var/lib/postgresql/data
+    healthcheck:
+      # 更新 healthcheck 以使用新端口
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-{{ cookiecutter.project }}} -d ${DB_NAME:-{{ cookiecutter.project }}}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - {{ cookiecutter.project }}-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4.5-alpine
+    container_name: {{ cookiecutter.project }}-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - {{ cookiecutter.project }}_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - {{ cookiecutter.project }}-network
+    restart: unless-stopped
+
+  web:
+    image: {{ cookiecutter.project }}:latest
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      tags:
+        - {{ cookiecutter.project }}:${VERSION:-0.1.0}
+        - {{ cookiecutter.project }}:latest
+    container_name: {{ cookiecutter.project }}
+    env_file: .env
+    environment:
+      DB_HOST: db
+      REDIS_HOST: redis
+      FORCE_SCRIPT_NAME: /{{ cookiecutter.project }}
+    working_dir: /app
+    expose:
+      - "8000"
+    volumes:
+      - {{ cookiecutter.project }}_static:/app/static
+      - {{ cookiecutter.project }}_media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - {{ cookiecutter.project }}-network
+    restart: unless-stopped
+
+  celery-worker:
+    image: {{ cookiecutter.project }}:latest
+    container_name: {{ cookiecutter.project }}-celery-worker
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      REDIS_HOST: redis
+    working_dir: /app
+    entrypoint: []
+    command: celery -A {{ cookiecutter.project }} worker -l info
+    depends_on:
+      web:
+        condition: service_started
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - {{ cookiecutter.project }}-network
+    restart: unless-stopped
+
+  celery-beat:
+    image: {{ cookiecutter.project }}:latest
+    container_name: {{ cookiecutter.project }}-celery-beat
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      REDIS_HOST: redis
+    working_dir: /app
+    entrypoint: []
+    command: celery -A {{ cookiecutter.project }} beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    depends_on:
+      web:
+        condition: service_started
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - {{ cookiecutter.project }}-network
+    restart: unless-stopped

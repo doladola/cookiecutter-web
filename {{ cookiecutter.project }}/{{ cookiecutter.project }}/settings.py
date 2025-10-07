@@ -13,9 +13,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 
 import environ
-{% if cookiecutter.use_sentry %}
+{% if cookiecutter.use_sentry -%}
 import sentry_sdk
-{% endif %}
+{%- endif %}
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    {% if cookiecutter.use_celery -%}
+    'django_celery_beat',
+    {%- endif %}
 ]
 
 MIDDLEWARE = [
@@ -95,7 +98,7 @@ DATABASES = {
     }
 }
 
-{% if cookiecutter.use_redis %}
+{% if cookiecutter.use_redis -%}
 # cache setting
 CACHES = {
     "default": {
@@ -103,7 +106,7 @@ CACHES = {
         "LOCATION": f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}",
     }
 }
-{% endif %}
+{%- endif %}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -156,7 +159,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-{% if cookiecutter.use_celery %}
+{% if cookiecutter.use_celery -%}
 # Celery 配置
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}/1")
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}/2")
@@ -167,9 +170,9 @@ CELERY_TIMEZONE = 'Asia/Shanghai'
 
 # Celery Beat 使用数据库调度器
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
-{% endif %}
+{%- endif %}
 
-{% if cookiecutter.use_sentry %}
+{% if cookiecutter.use_sentry -%}
 # sentry 配置
 SENTRY_DSN = env("SENTRY_DSN", default="")
 if SENTRY_DSN:
@@ -187,7 +190,7 @@ if SENTRY_DSN:
         sentry_params["profile_lifecycle"] = env('SENTRY_PROFILE', str)
 
     sentry_sdk.init(**sentry_params)
-{% endif %}
+{%- endif %}
 
 # 日志设置
 LOGGING = {

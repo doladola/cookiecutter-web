@@ -1,5 +1,67 @@
 # {{ cookiecutter.project }}
-**项目简介**：This Is My Awesom Project!
+**项目简介**：{{ cookiecutter.description }}
+
+## 快速开始
+1. 创建开发环境
+
+    ```sh
+    docker compose -f docker/docker-compose.dev.yaml --env-file .env up -d
+    ```
+
+2. 创建APP
+
+    ```sh
+    # 在项目根目录下运行如下命令创建应用(请修改`myapp`为实际名称)
+    uv run manage.py startapp myapp
+    ```
+
+3. 创建功能  
+    接下来在APP中创建一个简单的功能。
+    
+    创建视图：打开`myapp/views.py`，添加一下内容：
+
+    ```py  
+    ```
+
+    配置URL：打开`myapp/urls.py`文件，输入以下内容：
+
+    ```py
+    ```
+
+4. 启用APP  
+    打开`{{ cookiecutter.project }}/settings.py`,添加`myapp`到安装的app列表中。
+    
+    ```py
+    INSTALLED_APPS = [
+       'django.contrib.admin',
+       'django.contrib.auth',
+       'django.contrib.contenttypes',
+       'django.contrib.sessions',
+       'django.contrib.messages',
+       'django.contrib.staticfiles',
+       # 在末尾添加自建的APP
+       'myapp'
+    ]
+    ```
+    
+    打开`{{ cookiecutter.project }}/settings.py`,添加`myapp`的URL配置。
+    
+    ```py
+    ```
+
+5. 运行服务  
+    在终端运行如下命令：
+
+    ```py
+    # 初始化数据库
+    uv run manage.py migrate
+
+    # 启动开发服务器
+    uv run manage.py runserver
+    ```
+
+6. 访问功能
+  打开浏览器，输入``,测试访问是否正常。
 
 ## 项目结构
 ```
@@ -8,14 +70,13 @@
 │   │   ├── nginx.conf
 │   │   ├── docker-compose.yaml
 │   │   └── sites                            (站点配置目录)
-│   ├── .env                                 (生产环境变量配置)
+│   ├── .env.example                         (生产环境变量配置)
 │   ├── docker-compose.dev.yaml              (用于配置开发环境)
 │   ├── docker-compose.prd.yaml              (用于生产环境部署)
 │   └── nginx.conf                           (二级Nginx配置)
 ├── Dockerfile                               (用于构建项目镜像)
 ├── entrypoint.sh                            (容器入口脚本) 
 ├── log                                      (日志文件夹)    
-│   └── {{ cookiecutter.project }}.log
 ├── manage.py                                (Django项目管理脚本)
 ├── media                                    (用户上传文件存放目录)
 ├── myapp                                    (Django应用)
@@ -29,7 +90,7 @@
 │   ├── tests.py
 │   ├── urls.py
 │   └── views.py
-├── {{ cookiecutter.project }}                                   (Django项目)
+├── {{ cookiecutter.project }}               (Django项目)
 │   ├── asgi.py
 │   ├── celery.py                            (Celery配置)
 │   ├── __init__.py
@@ -130,14 +191,77 @@ uv run manage.py createsuperuser
 # 销毁外部环境并清除数据
 docker compose -f docker/docker-compose.dev.yaml down -v
 ```
+**注意**：创建APP后需要启用APP，操作步骤见 [快速开始](#快速开始)
 
-## 操作手册
+### 创建Celery任务
+在APP中创建`tasks.py`文件
 
-常用操作：
 ```sh
-# 创建项目
-uvx cookiecutter -f cookiecutter-web
+touch myapp/tasks.py
 ```
+
+在`tasks.py`中创建任务，例如：
+
+```py
+import logging
+import time
+
+from celery import shared_task
+
+logger = logging.getLogger(__name__)
+
+
+@shared_task
+def add(x, y):
+    # 模拟一个耗时操作
+    time.sleep(5)
+    return x + y
+```
+
+在`views.py`文件中创建对应的视图函数：
+
+```py
+from celery.result import AsyncResult
+from django.http import JsonResponse
+
+from .tasks import add
+
+def async_add_view(request):
+    '''
+    创建一个简易的异步任务
+    '''
+    result = add.delay(1, 2)
+    return JsonResponse({"task_id": result.id})
+
+
+def get_task_status(request):
+    '''
+    查看异步任务状态，获取异步任务结果
+    '''
+    task_id = request.GET.get("task_id")
+    if not task_id:
+        return JsonResponse({"error": "Missing task_id"}, status=400)
+
+    task_result = AsyncResult(task_id)
+
+    result = {"task_id": task_id, "status": task_result.status, "result": task_result.result if task_result.ready() else None}
+    return JsonResponse(result)
+
+```
+
+在`urls.py`中配置URL规则：
+
+```py
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('async-add/', views.async_add_view, name='async_add'),
+    path('task-status/', views.get_task_status, name='get_task_status'),
+]
+```
+至此，可以通过`async-add/`发起一个异步任务，再通过`task-status/`获取任务执行结果和状态。
 
 ## 项目部署
 
@@ -159,8 +283,9 @@ uvx cookiecutter -f cookiecutter-web
                              ├─ 静态请求 → 直接返回/static/目录文件
                              └─ 动态请求 → 转发至analysis的Django服务（8000端口）
 ```
-部署方案中，一级Nginx负责监听外部端口，并根据路径转发至不同的二级Nginx，二级nginx负责处理静态文件和动态请求。
-该方案需要注意由于路径前缀问题，需要特别注意重定向错误。
+部署方案中，一级Nginx负责监听外部端口，并根据路径转发至不同的二级Nginx，二级nginx负责处理静态文件和动态请求。一级Nginx由项目外部维护，二级Nginx由各个项目独立维护。
+
+**注意**：需要注意由于路径前缀和端口，需要特别注意重定向错误。
 
 ### 本地测试
 

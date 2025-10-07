@@ -396,6 +396,154 @@ http://localhost:8000/task-status/?task_id=9e0b6465-cff9-40f6-9cf8-1e9ccac159a2
 {"task_id": "9e0b6465-cff9-40f6-9cf8-1e9ccac159a2", "status": "SUCCESS", "result": 3}
 ```
 
+**注意**：如果要创建定时任务，需要在`settings.py`中添加如下配置：
+
+```py
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    # 在末尾添加
+    'django_celery_beat',
+]
+```
+
+### 示例
+
+以下展示的是`myapp/views.py`的完整代码示例：
+
+```py
+# myapp/views.py
+import logging
+
+from celery.result import AsyncResult
+from django.http import JsonResponse
+from ninja import Router, Schema
+
+from .tasks import add
+
+logger = logging.getLogger(__name__)
+
+# 简单视图
+def index(request):
+    logger.info("Index page accessed")
+    return JsonResponse({"message": "Hello, world!"})
+
+
+# API视图
+router = Router()
+logger = logging.getLogger(__name__)
+
+
+class AnalysisRequest(Schema):
+    text: str
+
+
+class AnalysisResponse(Schema):
+    sentiment: str
+
+
+@router.post("/analysis", response=AnalysisResponse)
+def analysis(request, data: AnalysisRequest) -> AnalysisResponse:
+    text = data.text
+    return AnalysisResponse(sentiment='positive')
+
+
+# Celery异步任务视图
+def async_add_view(request):
+    '''
+    创建一个简易的异步任务
+    '''
+    result = add.delay(1, 2)
+    return JsonResponse({"task_id": result.id})
+
+
+# Celery任务状态视图
+def get_task_status(request):
+    '''
+    查看异步任务状态，获取异步任务结果
+    '''
+    task_id = request.GET.get("task_id")
+    if not task_id:
+        return JsonResponse({"error": "Missing task_id"}, status=400)
+
+    task_result = AsyncResult(task_id)
+
+    result = {"task_id": task_id, "status": task_result.status, "result": task_result.result if task_result.ready() else None}
+    return JsonResponse(result)
+```
+
+以下展示的是`myapp/urls.py`的完整代码示例：
+
+```py
+# myapp/urls.py
+from django.urls import path
+from ninja import NinjaAPI
+
+from . import views
+from .views import router
+
+api = NinjaAPI()
+api.add_router("/api", router)
+
+urlpatterns = [
+    path("", views.index, name="index"),
+    path("", api.urls),
+    path('async-add/', views.async_add_view, name='async_add'),
+    path('task-status/', views.get_task_status, name='get_task_status'),
+]
+```
+
+以下展示的是`myapp/tasks.py`的完整代码示例：
+
+```py
+# myapp/tasks.py
+import logging
+import time
+
+from celery import shared_task
+
+logger = logging.getLogger(__name__)
+
+
+@shared_task
+def add(x, y):
+    # 模拟一个耗时操作
+    time.sleep(5)
+    return x + y
+```
+
+以下展示的是`{{ cookiecutter.project }}/urls.py`的完整代码示例：
+
+```py
+# {{ cookiecutter.project }}/urls.py
+from django.contrib import admin
+from django.urls import include, path
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('myapp.urls')),
+]
+```
+
+以下展示的是`{{ cookiecutter.project }}/celery.py`的完整代码示例：
+
+```py
+# {{ cookiecutter.project }}/celery.py
+import os
+
+from celery import Celery
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{{ cookiecutter.project }}.settings')
+
+app = Celery('{{ cookiecutter.project }}')
+app.config_from_object('django.conf:settings', namespace='CELERY')
+app.autodiscover_tasks()
+```
+
 ## 项目部署
 
 ### 部署结构

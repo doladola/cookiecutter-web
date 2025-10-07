@@ -215,6 +215,72 @@ docker compose -f docker/docker-compose.dev.yaml down -v
 ```
 **注意**：创建APP后需要启用APP，操作步骤见 [快速开始](#快速开始)
 
+### 创建API视图
+使用ninja可以再Django中创建类似FastApi的API。具体如下：
+
+在`myapp/views.py`文件中创建视图函数：
+
+```py
+import logging
+from typing import List, Optional, Tuple
+
+from ninja import Router, Schema
+
+
+router = Router()
+logger = logging.getLogger(__name__)
+
+class AnalysisRequest(Schema):
+    text:str
+
+class AnalysisResponse(Schema):
+    sentiment: str
+
+@router.post("/analysis", response=AnalysisResponse)
+def analysis(request, data: AnalysisRequest) -> AnalysisResponse:
+    text = data.text
+    return AnalysisResponse(sentiment='positive')
+```
+
+在`myapp/urls.py`文件中添加URL规则：
+
+```py
+from django.urls import path
+from ninja import NinjaAPI
+
+from .views import router
+
+api = NinjaAPI()
+api.add_router("/api", router)
+
+urlpatterns = [
+    path("", api.urls),
+]
+```
+
+在`{{ cookiecutter.project }}/urls`中添加APP的URL配置：
+
+```py
+from django.contrib import admin
+from django.urls import include, path
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("", include("myapp.urls")),
+]
+```
+
+启动web服务，查看结果：
+```py
+# 新建终端窗口，启动开发服务器
+uv run manage.py runserver
+```
+
+从`localhost:8000/api/analysis`访问API。
+
+**注意**：快速测试可以通过`localhost:8000/api/docs`页面可视化快速测试接口。
+
+
 ### 创建Celery任务
 在`{{ cookiecutter.project }}`中创建`celery.py`文件，并添加以下内容：
 

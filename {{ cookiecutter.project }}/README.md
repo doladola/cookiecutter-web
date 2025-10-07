@@ -576,10 +576,13 @@ app.autodiscover_tasks()
 需要检查nginx配置、compose配置和环境变量配置。
 
 环境变量(`/docker/.env`)注意检查：
-- SITE
-- ALLOWED_HOSTS  
-- DB_HOST  
-- REDIS_HOST  
+- FORCE_SCRIPT_NAME: 设置为项目路径前缀，例如`/blog`或`/analysis`
+- ALLOWED_HOSTS: 设置为服务器HOST  
+- DB_HOST: 数据库HOST，生产环境为`db`，本地测试可设置为`localhost`  
+- REDIS_HOST: Redis HOST，生产环境为`redis`，本地测试可设置为`localhost`  
+- DJANGO_SUPERUSER_USERNAME: 管理员用户名
+- DJANGO_SUPERUSER_PASSWORD: 管理员密码
+- SENTRY_DSN: sentry dsn地址
 
 #### 服务启动
 
@@ -626,8 +629,11 @@ docker save {{ cookiecutter.project }}:0.1.0 -o /deploy/{{ cookiecutter.project 
 # 复制.env文件
 cp docker/.env /deploy/
 
-# 复制vhost config文件
-cp docker/{{ cookiecutter.project }}.vhost.conf /deploy/
+# 复制一级nginx站点config文件
+cp docker/nginx/sites/{{ cookiecutter.project }}.conf /deploy/
+
+# 复制二级nginx配置
+cp docker/nginx.conf /deploy/
 
 # 复制compose文件
 cp docker/docker-compose.prd.yaml /deploy/
@@ -646,8 +652,8 @@ docker load -i {{ cookiecutter.project }}:0.1.0.tar
 # 启动镜像
 docker compose -f docker-compose.prd.yaml up -d
 
-# 配置nginx
-cp {{ cookiecutter.project }}.vhost.conf /path/to/nginx/vhost
+# 配置一级nginx
+cp {{ cookiecutter.project }}.conf /path/to/nginx/sites
 
 # 验证nginx配置
 docker exec nginx nginx -t
@@ -656,20 +662,22 @@ docker exec nginx nginx -t
 docker exec -it nginx nginx -s reload
 ```
 
-注意：项目部署假设已经启动了Nginx服务，如果没有启动Nginx服务，请先启动Nginx服务。
+注意：项目部署假设已经启动了一级Nginx服务，如果没有启动一级Nginx服务，请先[启动一级Nginx服务](#启动一级nginx服务)。
 
-## 启动Nginx服务
-`nginx`文件夹中给出了Nginx服务的示例配置:
+## 启动一级nginx服务
+
+### 服务结构
+`/docker/nginx`文件夹中给出了一级Nginx服务的示例配置:
 
 ```
 ├── docker-compose.yaml         (nginx compose文件)
 ├── nginx.conf                  (nginx主配置)
-└── vhosts                      (站点配置)
+└── sites                       (站点配置)
 ```
 
 - nginx.conf  
     这是nginx服务的主配置文件，设置了一般性配置。  
-    各个站点配置存放在`vhosts`中，在主配置中导入。
+    各个站点配置存放在`sites`中，在主配置中导入。
 
     注意：`worker_processes`和`worker_connections`可以根据实际需要调整。
 
@@ -677,14 +685,28 @@ docker exec -it nginx nginx -s reload
     需关注端口配置。
     例如，如可用端口是`32156`,则需要将端口设置为`32156:80`。
 
-### 启动nginx服务
+### 服务启动
+
 ```sh
 # 创建nginx网络（如有则不用重复创建）
 docker network create nginx-network
 
 # 启动nginx
-docker compose -f nginx/docker-compose.yaml up -d
+docker compose -f docker/nginx/docker-compose.yaml up -d
 ```
+
+**注意**：要特别注意一级nginx和web服务的启动顺序！此外，首个项目和后续项目略有不同。  
+
+**首个**项目启动顺序：  
+1. 启动站点web服务
+2. 添加站点配置
+3. **启动**一级Nginx
+
+**后续**项目启动顺序：
+1. 启动站点web服务
+2. 添加站点配置
+3. **重载**一级Nginx
+
 
 ## 快捷工具
 项目根目录下的`cmd.sh`提供了常用的命令，便于快速启动项目开发：

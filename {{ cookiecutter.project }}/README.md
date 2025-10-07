@@ -5,6 +5,10 @@
 1. 创建开发环境
 
     ```sh
+    # 创建环境变量配置文件
+    cp .env.example .env
+
+    # 创建开发环境
     docker compose -f docker/docker-compose.dev.yaml --env-file .env up -d
     ```
 
@@ -201,7 +205,10 @@ docker compose -f docker/docker-compose.dev.yaml --env-file .env up -d
 # 创建应用
 uv run manage.py startapp myapp
 
-# 初始化数据库
+# 创建数据库迁移
+uv run manage.py makemigrations
+
+# 执行数据库迁移
 uv run manage.py migrate
 
 # 启动开发服务器
@@ -516,6 +523,18 @@ docker network create nginx-network
 
 # 启动nginx
 docker compose -f nginx/docker-compose.yaml up -d
+```
+
+## 快捷工具
+项目根目录下的`cmd.sh`提供了常用的命令，便于快速启动项目开发：
+
+### 开发环境
+```sh
+# 创建开发环境
+./cmd.sh dev up 
+
+# 销毁开发环境
+./cmd.sh dev down
 ```
 
 ## 常用工具

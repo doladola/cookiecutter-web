@@ -591,7 +591,7 @@ app.autodiscover_tasks()
 uv export --format requirements-txt > requirements.txt
 
 # 构建镜像
-docker compose -f docker/docker-compose.prd.yaml --env-file .env build {{ cookiecutter.project }}
+docker compose -f docker/docker-compose.prd.yaml --env-file .env build web
 
 # 创建nginx网络
 docker network create nginx-network
@@ -600,14 +600,14 @@ docker network create nginx-network
 docker compose -f docker/docker-compose.prd.yaml --env-file .env up -d
 
 # 启动nginx一级代理
-docker compose -f docker/nginx/docker-compose.yaml
+docker compose -f docker/nginx/docker-compose.yaml up -d
 ```
 
 #### 服务关闭
 
 ```sh
 # 关闭nginx一级代理
-docker compose -f docker/nginx/docker-compose.yaml
+docker compose -f docker/nginx/docker-compose.yaml down -v
 
 # 关闭项目服务
 docker compose -f docker/docker-compose.prd.yaml --env-file .env down -v
@@ -624,19 +624,19 @@ docker network rm nginx-network
 mkdir deploy
 
 # 导出镜像
-docker save {{ cookiecutter.project }}:0.1.0 -o /deploy/{{ cookiecutter.project }}:0.1.0.tar
+docker save {{ cookiecutter.project }}:0.1.0 -o deploy/{{ cookiecutter.project }}:0.1.0.tar
 
 # 复制.env文件
-cp docker/.env /deploy/
+cp docker/.env deploy/
 
 # 复制一级nginx站点config文件
-cp docker/nginx/sites/{{ cookiecutter.project }}.conf /deploy/
+cp docker/nginx/sites/{{ cookiecutter.project }}.conf deploy/
 
 # 复制二级nginx配置
-cp docker/nginx.conf /deploy/
+cp docker/nginx.conf deploy/
 
 # 复制compose文件
-cp docker/docker-compose.prd.yaml /deploy/
+cp docker/docker-compose.prd.yaml deploy/
 
 # 上传服务器
 scp -r deploy user@server:/path/to/deploy -p port
@@ -648,6 +648,12 @@ cd /path/to/deploy
 
 # 导入镜像
 docker load -i {{ cookiecutter.project }}:0.1.0.tar
+
+# 为镜像打标签
+docker tag {{ cookiecutter.project }}:0.1.0 {{ cookiecutter.project }}:latest
+
+# 创建nginx网络（如有则不用重复创建）
+docker network create nginx-network
 
 # 启动镜像
 docker compose -f docker-compose.prd.yaml up -d

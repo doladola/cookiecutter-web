@@ -42,7 +42,7 @@ def create_virtualenv_and_install_dependencies():
     # 依赖去重
     dependences = list(set(dependences))
 
-    command = ['uv','add'] + dependences
+    command = ['uv','add','--link-mode=copy'] + dependences
 
     print(subprocess.run(command, check=True,capture_output=True,text=True,encoding='utf-8'))
     

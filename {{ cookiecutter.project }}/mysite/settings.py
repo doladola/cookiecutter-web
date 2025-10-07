@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 
 import environ
+{% if {{ cookiecutter.use_sentry }} %}
+import sentry_sdk
+{% endif %}
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -92,14 +95,15 @@ DATABASES = {
     }
 }
 
+{% if {{ cookiecutter.use_redis }} %}
 # cache setting
-if {{ cookiecutter.use_redis }}:
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}",
-        }
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}",
     }
+}
+{% endif %}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -152,37 +156,38 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-if {{ cookiecutter.use_celery }}:
-    # Celery 配置
-    CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}/1")
-    CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}/2")
-    CELERY_ACCEPT_CONTENT = ['json']
-    CELERY_TASK_SERIALIZER = 'json'
-    CELERY_RESULT_SERIALIZER = 'json'
-    CELERY_TIMEZONE = 'Asia/Shanghai'
+{% if {{ cookiecutter.use_celery }} %}
+# Celery 配置
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}/1")
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}/2")
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Shanghai'
 
-    # Celery Beat 使用数据库调度器
-    CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+# Celery Beat 使用数据库调度器
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+{% endif %}
 
-if {{ cookiecutter.use_sentry }}:
-    # sentry 配置
-    SENTRY_DSN = env("SENTRY_DSN", default="")
-    if SENTRY_DSN:
-        import sentry_sdk
+{% if {{ cookiecutter.use_sentry }} %}
+# sentry 配置
+SENTRY_DSN = env("SENTRY_DSN", default="")
+if SENTRY_DSN:
 
-        sentry_params = {"dsn": SENTRY_DSN, "send_default_pii": True}
+    sentry_params = {"dsn": SENTRY_DSN, "send_default_pii": True}
 
-        # 是否启用日志集成
-        if env('SENTRY_LOG', bool, default=False):
-            sentry_params["enable_logs"] = True
-        # 采样率，范围是0.0到1.0，或者-1.0表示禁用
-        if env('SENTRY_TRACES_SAMPLE_RATE', float, default=-1.0) >= 0:
-            sentry_params["traces_sample_rate"] = env('SENTRY_TRACES_SAMPLE_RATE', float)
-        # 性能分析，trace或cpu
-        if env('SENTRY_PROFILE', str, default="") in ("trace", "cpu"):
-            sentry_params["profile_lifecycle"] = env('SENTRY_PROFILE', str)
+    # 是否启用日志集成
+    if env('SENTRY_LOG', bool, default=False):
+        sentry_params["enable_logs"] = True
+    # 采样率，范围是0.0到1.0，或者-1.0表示禁用
+    if env('SENTRY_TRACES_SAMPLE_RATE', float, default=-1.0) >= 0:
+        sentry_params["traces_sample_rate"] = env('SENTRY_TRACES_SAMPLE_RATE', float)
+    # 性能分析，trace或cpu
+    if env('SENTRY_PROFILE', str, default="") in ("trace", "cpu"):
+        sentry_params["profile_lifecycle"] = env('SENTRY_PROFILE', str)
 
-        sentry_sdk.init(**sentry_params)
+    sentry_sdk.init(**sentry_params)
+{% endif %}
 
 # 日志设置
 LOGGING = {

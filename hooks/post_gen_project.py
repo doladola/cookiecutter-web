@@ -41,7 +41,10 @@ def create_virtualenv_and_install_dependencies():
         dependences.extend(['sentry-sdk[django]'])
     # 依赖去重
     dependences = list(set(dependences))
-    print(subprocess.run(['uv','add'," ".join(dependences)], check=True,capture_output=True,text=True,encoding='utf-8'))
+
+    command = ['uv','add'] + dependences
+
+    print(subprocess.run(command, check=True,capture_output=True,text=True,encoding='utf-8'))
     
     print("INFO: Virtual environment created and dependencies installed successfully.")
 

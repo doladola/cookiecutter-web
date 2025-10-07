@@ -13,7 +13,10 @@ def name_check(name:str,content:str):
         sys.exit(1)
 
 name_check('project','{{ cookiecutter.project }}')
-name_check('app','{{ cookiecutter.app }}')
 
 
 assert "\\" not in "{{ cookiecutter.author }}", "用户名不合法！"
+
+if {{ cookiecutter.use_celery }} and  not {{ cookiecutter.use_redis }}:
+    print(f"错误：使用Celery需要设置`use_redis`为`True`！")
+    sys.exit(1)

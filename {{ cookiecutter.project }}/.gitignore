@@ -19,6 +19,7 @@ wheels/
 
 # env
 *.env
+*.env.example
 
 # logs
 *.log

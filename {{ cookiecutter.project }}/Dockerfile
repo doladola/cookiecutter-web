@@ -9,8 +9,8 @@ RUN pip install --no-cache-dir -i https://mirrors.bfsu.edu.cn/pypi/web/simple -r
 # 设置环境变量
 ENV DEBUG=False
 
-# 创建日志目录
-RUN mkdir -p /app/log
+# 创建项目目录
+RUN mkdir -p /app/log /app/static /app/media
 
 # 复制项目文件
 COPY . .

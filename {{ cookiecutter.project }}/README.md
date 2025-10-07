@@ -21,11 +21,28 @@
     创建视图：打开`myapp/views.py`，添加一下内容：
 
     ```py  
+    import logging
+
+    from django.http import JsonResponse
+
+    logger = logging.getLogger(__name__)
+
+
+    def index(request):
+        logger.info("Index page accessed")
+        return JsonResponse({"message": "Hello, world!"})
     ```
 
     配置URL：打开`myapp/urls.py`文件，输入以下内容：
 
     ```py
+    from django.urls import path
+
+    from . import views
+
+    urlpatterns = [
+        path("", views.index, name="index"),
+    ]
     ```
 
 4. 启用APP  
@@ -44,9 +61,17 @@
     ]
     ```
     
-    打开`{{ cookiecutter.project }}/settings.py`,添加`myapp`的URL配置。
+    打开`{{ cookiecutter.project }}/urls.py`,添加`myapp`的URL配置。
     
     ```py
+    from django.contrib import admin
+    from django.urls import include, path
+
+    urlpatterns = [
+        path('admin/', admin.site.urls),
+        # 添加myapp的url配置
+        path('', include('myapp.urls')),
+    ]
     ```
 
 5. 运行服务  
@@ -61,7 +86,7 @@
     ```
 
 6. 访问功能
-  打开浏览器，输入``,测试访问是否正常。
+  打开浏览器，输入`http://localhost:8000`,测试访问是否正常。
 
 ## 项目结构
 ```
@@ -182,9 +207,6 @@ uv run manage.py migrate
 # 启动开发服务器
 uv run manage.py runserver
 
-# 启动Celery，默认启动一个worker，通过-c指定并发数
-uv run celery -A {{ cookiecutter.project }} worker -l info -c 4
-
 # 创建后台管理员（交互式，按需）
 uv run manage.py createsuperuser
 
@@ -194,6 +216,21 @@ docker compose -f docker/docker-compose.dev.yaml down -v
 **注意**：创建APP后需要启用APP，操作步骤见 [快速开始](#快速开始)
 
 ### 创建Celery任务
+在`{{ cookiecutter.project }}`中创建`celery.py`文件，并添加以下内容：
+
+```py
+import os
+
+from celery import Celery
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{{ cookiecutter.project }}.settings')
+
+app = Celery('{{ cookiecutter.project }}')
+app.config_from_object('django.conf:settings', namespace='CELERY')
+app.autodiscover_tasks()
+
+```
+
 在APP中创建`tasks.py`文件
 
 ```sh
@@ -246,7 +283,6 @@ def get_task_status(request):
 
     result = {"task_id": task_id, "status": task_result.status, "result": task_result.result if task_result.ready() else None}
     return JsonResponse(result)
-
 ```
 
 在`urls.py`中配置URL规则：
@@ -261,6 +297,17 @@ urlpatterns = [
     path('task-status/', views.get_task_status, name='get_task_status'),
 ]
 ```
+
+启动服务，包括web服务和Celery服务：
+
+```py
+# 新建终端窗口，启动开发服务器
+uv run manage.py runserver
+
+# 新建终端窗口，启动Celery，默认启动一个worker，通过-c指定并发数
+uv run celery -A {{ cookiecutter.project }} worker -l info -c 4
+```
+
 至此，可以通过`async-add/`发起一个异步任务，再通过`task-status/`获取任务执行结果和状态。
 
 ## 项目部署

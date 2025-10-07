@@ -1,63 +1,39 @@
 # 项目简介
-这是Django web项目模板。
+Django项目脚手架，用于快速创建Django web项目。
 
 ## 使用方法
 ```sh
 # 基于uv
-uvx cookiecutter cookiecutter-web/
+uvx cookiecutter -f cookiecutter-web/
 ```
 
-## 部署方法
+## 核心信息
+1. Django版本
 
-### Nginx配置
-Django项目在生产环境中需要使用Nginx做反向代理和静态文件服务，一台服务器上可以共用一个Nginx。使用环节主要包括三个步骤：
-1. 创建Nginx网络
-    `docker network create nginx_net`（首次创建时执行，仅执行一次即可）
-1. 启动Nginx服务
-    启动Nginx服务，为后续接入Web服务做准备。（首次启动时执行，仅执行一次即可）
-2. 启动Web服务
-    启动Django Web服务。Web服务在启动时要加入Nginx网络并导出静态文件。
-3. 更新Nginx配置
-    更新Nginx配置文件，添加Web服务的反向代理配置，并重新加载Nginx配置。
-4. 重载Nginx配置
-    加载Nginx的配置文件，让新配置生效。
+    项目基于Django(5.2.2)版本，未测试其他版本兼容性。
 
-#### Nginx目录结构
-在`deploy/nginx`目录中有Nginx的配置示例。主要包括三个部分：
-1. `nginx.conf`文件：Nginx的主配置文件
-2. `vhosts/`目录：保存了各个Web服务站点的Nginx配置
-3. `docker-compose.yml`文件：用于启动Nginx容器
+2. 版本管理
 
-#### 启动Nginx服务
-执行以下命令启动Nginx服务：
-```sh
-cd deploy/nginx 
-docker compose up -d
-```
-！注意：启动前要编辑`docker-compose，修正Nginx的端口！
+    项目基于`uv`构建版本管理。
 
-### 启动web服务
-执行以下命令启动Web服务：
-```sh
-cd deploy/django
-docker compose up -d
-```
-！注意：启动前要编辑`docker-compose.yml`，修正Web服务的端口和环境变量文件路径！
+3. 部署方式
 
-### 更新Nginx配置
-在`deploy/nginx/vhosts/`目录中添加Web服务的Nginx配置文件，配置示例见`nginx/vhosts/example.conf`。
-注意要修改如下配置：
-- web容器名
-- server_name
-- client_max_body_size
+    项目基于docker部署，自动启动web服务依赖的数据库、缓存、任务队列等依赖。
+    部署结构上采取两级nginx级联。
+    一级nginx用于不同web服务请求的动态转发。
+    二级nginx用于向本项目的web服务转发动态请求，并提供本项目的静态文件服务。
 
-### 重载Nginx配置
-执行以下命令重载Nginx配置：
-```sh
-docker exec -it nginx nginx -s reload
-```
+    > WHY？
+    > - 独立性：两级级联的方式能最大限度隔离不同项目。
+    > - 统一性：两级级联的方式能统一管理服务器上的请求。
 
 
+## 功能简介
+- 自动配置：脚手架自动配置数据库、缓存、任务队列、日志监控等
+- 环境配置：脚手架提供了本地开发的环境配置，支持一件创建本地研发环境
+- 部署配置：脚手架提供了服务部署的配置、脚本和说明，减少项目部署的难度
 
 
-
+## 后续计划
+- 支持异步框架
+- 支持无数据库模式

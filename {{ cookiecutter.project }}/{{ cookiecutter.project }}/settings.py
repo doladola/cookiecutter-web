@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 
 import environ
-{% if {{ cookiecutter.use_sentry }} %}
+{% if cookiecutter.use_sentry %}
 import sentry_sdk
 {% endif %}
 
@@ -95,7 +95,7 @@ DATABASES = {
     }
 }
 
-{% if {{ cookiecutter.use_redis }} %}
+{% if cookiecutter.use_redis %}
 # cache setting
 CACHES = {
     "default": {
@@ -156,7 +156,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-{% if {{ cookiecutter.use_celery }} %}
+{% if cookiecutter.use_celery %}
 # Celery 配置
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}/1")
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}/2")
@@ -169,7 +169,7 @@ CELERY_TIMEZONE = 'Asia/Shanghai'
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 {% endif %}
 
-{% if {{ cookiecutter.use_sentry }} %}
+{% if cookiecutter.use_sentry %}
 # sentry 配置
 SENTRY_DSN = env("SENTRY_DSN", default="")
 if SENTRY_DSN:

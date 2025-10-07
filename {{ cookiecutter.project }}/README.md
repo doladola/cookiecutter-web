@@ -37,7 +37,7 @@
         return JsonResponse({"message": "Hello, world!"})
     ```
 
-    配置URL：打开`myapp/urls.py`文件，输入以下内容：
+    配置URL：创建`myapp/urls.py`文件，输入以下内容：
 
     ```py
     from django.urls import path
@@ -90,7 +90,7 @@
     ```
 
 6. 访问功能
-  打开浏览器，输入`http://localhost:8000`,测试访问是否正常。
+  打开浏览器，输入`http://localhost:8000`,如果显示`{"message": "Hello, world!"}`则表示访问正常。
 
 ## 项目结构
 ```
@@ -229,7 +229,6 @@ docker compose -f docker/docker-compose.dev.yaml down -v
 
 ```py
 import logging
-from typing import List, Optional, Tuple
 
 from ninja import Router, Schema
 
@@ -285,7 +284,7 @@ uv run manage.py runserver
 
 从`localhost:8000/api/analysis`访问API。
 
-**注意**：快速测试可以通过`localhost:8000/api/docs`页面可视化快速测试接口。
+**注意**：快速测试可以通过`localhost:8000/docs`页面可视化快速测试接口。
 
 
 ### 创建Celery任务
@@ -382,6 +381,20 @@ uv run celery -A {{ cookiecutter.project }} worker -l info -c 4
 ```
 
 至此，可以通过`async-add/`发起一个异步任务，再通过`task-status/`获取任务执行结果和状态。
+
+```text
+# 浏览器访问发起异步任务
+http://localhost:8000/async-add/
+
+# 返回任务ID（每次访问ID会不同）
+{"task_id": "9e0b6465-cff9-40f6-9cf8-1e9ccac159a2"}
+
+# 浏览器访问获取任务状态
+http://localhost:8000/task-status/?task_id=9e0b6465-cff9-40f6-9cf8-1e9ccac159a2
+
+# 返回任务状态
+{"task_id": "9e0b6465-cff9-40f6-9cf8-1e9ccac159a2", "status": "SUCCESS", "result": 3}
+```
 
 ## 项目部署
 

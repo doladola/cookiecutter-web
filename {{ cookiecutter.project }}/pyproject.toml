@@ -4,16 +4,4 @@ version = "{{ cookiecutter.version }}"
 description = "{{ cookiecutter.description }}"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-    "django",
-    "gunicorn",
-{%- if cookiecutter.database == 'postgresql' %}
-    "psycopg[binary]",
-{%- endif %}
-{%- if cookiecutter.use_async %}
-    "uvicorn",
-{%- endif %}
-{%- if cookiecutter.use_ninja %}
-    "django-ninja",
-{%- endif %}
-]
+dependencies = []

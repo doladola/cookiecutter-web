@@ -3,6 +3,10 @@
 	"description": "This Is My Awesom Project!",
 	"author": "Yi Shen",
 	"email": "shenyi.box1@163.com",
+	"platform": [
+		"linux",
+		"windows"
+	],
 	"timezone": [
 		"UTC",
 		"Asia/Shanghai"
@@ -16,6 +20,11 @@
 	"use_celery": false,
 	"use_sentry": false,
 	"__prompts__": {
+		"platform": {
+			"__prompt__": "选择开发平台",
+			"linux": "Linux",
+			"windows": "Windows"
+		},
 		"timezone": {
 			"__prompt__": "选择项目时区",
 			"UTC": "UTC",

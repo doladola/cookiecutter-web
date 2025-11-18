@@ -32,7 +32,36 @@ uvx cookiecutter -f cookiecutter-web/
 - 自动配置：脚手架自动配置数据库、缓存、任务队列、日志监控等
 - 环境配置：脚手架提供了本地开发的环境配置，支持一件创建本地研发环境
 - 部署配置：脚手架提供了服务部署的配置、脚本和说明，减少项目部署的难度
+- VsCode集成：自动配置VsCode开发环境，支持跨平台开发（Windows/Linux）
 
+
+## VsCode集成
+
+生成的项目自动包含VsCode配置，提供开箱即用的开发体验：
+
+### 配置内容
+项目在`.vscode/settings.json`中预配置了以下内容：
+
+1. **Python解释器路径**
+   - 根据选择的平台（Windows/Linux）自动配置Python解释器路径
+   - Windows: `${workspaceFolder}\.venv\Scripts\python.exe`
+   - Linux: `${workspaceFolder}/.venv/bin/python`
+
+2. **测试框架配置**
+   - 启用Django unittest测试框架
+   - 自动发现`test*.py`文件中的测试
+
+### 使用建议
+1. 使用VsCode打开生成的项目目录
+2. VsCode会自动识别Python虚拟环境
+3. 可以直接使用VsCode的测试浏览器运行Django测试
+4. 支持调试Django应用和测试用例
+
+### 扩展推荐
+为获得最佳开发体验，推荐安装以下VsCode扩展：
+- Python (Microsoft)
+- Django (Baptiste Darthenay)
+- Pylance (Microsoft)
 
 ## 后续计划
 - 支持异步框架

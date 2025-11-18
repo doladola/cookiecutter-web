@@ -222,6 +222,48 @@ docker compose -f docker/docker-compose.dev.yaml down -v
 ```
 **注意**：创建APP后需要启用APP，操作步骤见 [快速开始](#快速开始)
 
+### 使用VsCode开发
+
+项目已预配置VsCode开发环境，提供以下便利：
+
+#### Python环境配置
+`.vscode/settings.json`已自动配置Python解释器路径，指向项目虚拟环境：
+{% if cookiecutter.platform == "windows" -%}
+- 解释器路径：`${workspaceFolder}\.venv\Scripts\python.exe`
+{%- else -%}
+- 解释器路径：`${workspaceFolder}/.venv/bin/python`
+{%- endif %}
+
+#### 测试集成
+- 已启用Django unittest测试框架
+- 在VsCode侧边栏的测试面板中可以查看和运行所有测试
+- 支持单个测试的调试功能
+
+#### 调试配置
+可以在`.vscode/launch.json`中添加Django调试配置：
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Django",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": ["runserver"],
+            "django": true,
+            "justMyCode": true
+        }
+    ]
+}
+```
+
+#### 推荐扩展
+- Python (Microsoft) - Python语言支持
+- Django (Baptiste Darthenay) - Django模板语法高亮
+- Pylance (Microsoft) - Python智能提示
+
 ### 创建API视图
 使用ninja可以再Django中创建类似FastApi的API。具体如下：
 

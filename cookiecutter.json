@@ -1,10 +1,12 @@
 {
 	"project": "mysite",
 	"description": "This Is My Awesom Project!",
-	"app": "myapp",
 	"author": "Yi Shen",
 	"email": "shenyi.box1@163.com",
-	"version": "0.1.0",
+	"platform": [
+		"linux",
+		"windows"
+	],
 	"timezone": [
 		"UTC",
 		"Asia/Shanghai"
@@ -13,14 +15,16 @@
 		"en-us",
 		"zh-hans"
 	],
-	"database": [
-		"sqlite",
-		"postgresql"
-	],
-	"use_async": false,
 	"use_ninja": false,
+	"use_redis": false,
 	"use_celery": false,
+	"use_sentry": false,
 	"__prompts__": {
+		"platform": {
+			"__prompt__": "选择开发平台",
+			"linux": "Linux",
+			"windows": "Windows"
+		},
 		"timezone": {
 			"__prompt__": "选择项目时区",
 			"UTC": "UTC",
@@ -30,11 +34,6 @@
 			"__prompt__": "选择项目语言",
 			"en-us": "English",
 			"zh-hans": "Chinese"
-		},
-		"database": {
-			"__prompt__": "选择项目使用的数据库",
-			"sqlite": "sqlite",
-			"postgresql": "postgresql"
 		}
 	}
 }

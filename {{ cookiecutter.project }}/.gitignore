@@ -19,10 +19,11 @@ wheels/
 
 # env
 *.env
+*.env.example
 
 # logs
 *.log
 log/
 
 media/
-staticfiles/
+static/

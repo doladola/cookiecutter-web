@@ -1,9 +1,9 @@
 networks:
   # 注意！要在启动容器前创建nginx_net
-  nginx_net:
+  nginx-network:
     external: true
 
-# 启动一个空Nginx服务
+# 一级nginx服务
 services:
   nginx:
     image: nginx:1.27-alpine
@@ -11,11 +11,15 @@ services:
     restart: unless-stopped
     ports:
       # 根据实际情况调整服务器上端口
-      - "80:80"
-    # 以后加 HTTPS:
-    # - "443:443"
+      - "8000:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./vhosts/:/etc/nginx/conf.d/:ro
+      - ./sites:/etc/nginx/sites/:ro
     networks:
-      - nginx_net
+      - nginx-network
+    healthcheck:
+      test: ["CMD-SHELL", "nginx -t >/dev/null 2>&1 || exit 1"] 
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

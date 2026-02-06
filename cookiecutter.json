@@ -15,6 +15,7 @@
 		"en-us",
 		"zh-hans"
 	],
+	"use_async": false,
 	"use_ninja": false,
 	"use_redis": false,
 	"use_celery": false,

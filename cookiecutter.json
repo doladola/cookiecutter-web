@@ -1,8 +1,8 @@
 {
-	"project": "mysite",
-	"description": "This Is My Awesom Project!",
-	"author": "Yi Shen",
-	"email": "shenyi.box1@163.com",
+	"project": "your_project_name",
+	"description": "This Is My Awesome Project!",
+	"author": "Your Name",
+	"email": "your.email@example.com",
 	"platform": [
 		"linux",
 		"windows"

@@ -193,12 +193,10 @@ if SENTRY_DSN:
 {%- endif %}
 
 # 日志设置
+logger_level =  env('LOGGER_LEVEL')
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'filters': {
-        'request_id': {},
-    },
     'formatters': {
         'verbose': {'format': '[%(asctime)s] %(levelname)s %(name)s %(message)s'},
         'simple': {'format': '%(levelname)s %(message)s'},
@@ -210,26 +208,15 @@ LOGGING = {
             'filters': [],
             'formatter': 'verbose',
         },
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filters': [],
-            'formatter': 'verbose',
-            'filename': BASE_DIR / env("LOGFILE", str, default='logs/{{ cookiecutter.project }}.log'),
-            'encoding': 'utf-8',
-            'when': 'midnight',  # 每天切割
-            'interval': 1,
-            'backupCount': 10,  # 保留10天的日志
-        },
     },
     'root': {
-        'handlers': ['console', 'file'],
-        'level': 'INFO',
+        'handlers': ['console'],
+        'level': logger_level,
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
+            'handlers': ['console'],
+            'level': logger_level,
             'propagate': True,
         },
     },

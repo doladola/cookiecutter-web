@@ -51,5 +51,5 @@ uvx cookiecutter -f cookiecutter-web/
 
 - bug修复：  
 - [ ] 不使用redis时仍然创建redis容器  
-- [ ] 不使用redis时环境变量仍然有redis配置  
+- [x] 不使用redis时环境变量仍然有redis配置  
 

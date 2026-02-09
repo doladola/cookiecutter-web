@@ -20,23 +20,23 @@ import sentry_sdk
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env = environ.Env()
+# Initialize environment variables
+env = environ.Env(DEBUG=(bool, True))
+
+# take environment variables from .env file
 environ.Env.read_env(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+DEBUG = env('DEBUG')
+SECRET_KEY = env('SECRET_KEY')
+FORCE_SCRIPT_NAME = env.str('FORCE_SCRIPT_NAME') if env.str('FORCE_SCRIPT_NAME') else None
 
-SECRET_KEY = env('SECRET_KEY', default='unsafe-secret-change-me')
-DEBUG = env('DEBUG', bool)
+# Hosts/domain names that are valid for this site
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS') if env.list('ALLOWED_HOSTS') else []
 
-_script_name = env('FORCE_SCRIPT_NAME', default="")
-FORCE_SCRIPT_NAME = _script_name if _script_name else None
-
-_allowed = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
-ALLOWED_HOSTS = [h for h in _allowed if h]
-
-_trusted = env.list('CSRF_TRUSTED_ORIGINS', default=[])
-CSRF_TRUSTED_ORIGINS = [o for o in _trusted if o]
+# CSRF trusted origins
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS') if env.list('CSRF_TRUSTED_ORIGINS') else []
 
 
 # Application definition
@@ -89,12 +89,12 @@ WSGI_APPLICATION = '{{ cookiecutter.project }}.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('DB_NAME', default='{{ cookiecutter.project }}'),
-        'USER': env('DB_USER', default='{{ cookiecutter.project }}'),
-        'PASSWORD': env('DB_PASSWORD', default='{{ cookiecutter.project }}'),
-        'HOST': env('DB_HOST', default='localhost'),
-        'PORT': env('DB_PORT', default='5432'),
-        'CONN_MAX_AGE': env.int('DB_CONN_MAX_AGE', default=60),
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
+        'CONN_MAX_AGE': env.int('DB_CONN_MAX_AGE'),
     }
 }
 
@@ -143,13 +143,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 if FORCE_SCRIPT_NAME:
-    STATIC_URL = FORCE_SCRIPT_NAME + '/static/'
+    STATIC_URL = FORCE_SCRIPT_NAME + '/static/'  # type: ignore
 else:
     STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
 
 if FORCE_SCRIPT_NAME:
-    MEDIA_URL = FORCE_SCRIPT_NAME + '/media/'
+    MEDIA_URL = FORCE_SCRIPT_NAME + '/media/'  # type: ignore
 else:
     MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

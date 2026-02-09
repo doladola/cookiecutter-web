@@ -43,5 +43,12 @@ uvx cookiecutter -f cookiecutter-web/
 ### 260201版本计划
 - 支持异步框架
 - 配置AI辅助编程通用配置
-- 修改默认项目名称为`config`
-- 修改log输出为异步形式
+- 项目中有两个.env文件，容易造成内容不一致
+- setting中检测报错
+- 日志配置：
+    - 通过异步方式输出日志到控制台
+    - 日志等级通过环境变量`LOG_LEVEL`配置，默认为`INFO`
+- bug修复：
+    - 不使用redis时仍然创建redis容器
+    - 不使用redis时环境变量仍然有redis配置
+

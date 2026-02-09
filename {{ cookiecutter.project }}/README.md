@@ -104,8 +104,7 @@
 │   ├── docker-compose.prd.yaml              (用于生产环境部署)
 │   └── nginx.conf                           (二级Nginx配置)
 ├── Dockerfile                               (用于构建项目镜像)
-├── entrypoint.sh                            (容器入口脚本) 
-├── log                                      (日志文件夹)    
+├── entrypoint.sh                            (容器入口脚本)  
 ├── manage.py                                (Django项目管理脚本)
 ├── media                                    (用户上传文件存放目录)
 ├── myapp                                    (Django应用)
@@ -157,9 +156,6 @@ DEBUG=True
 # 设置allowed hosts, comma separated, e.g. localhost,example.com
 # 发布生产时要添加服务器的HOST
 ALLOWED_HOSTS=localhost,127.0.0.1
-
-# 日志路径
-LOGFILE=log/{{ cookiecutter.project }}.log
 
 # 设置后台管理员信息
 DJANGO_SUPERUSER_USERNAME=admin

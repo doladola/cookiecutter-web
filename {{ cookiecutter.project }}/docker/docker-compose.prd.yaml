@@ -1,21 +1,5 @@
-networks:
-  nginx-network:
-    external: true
-  {{ cookiecutter.project }}-network:
-    driver: bridge
-    internal: true
-
-volumes:
-  {{ cookiecutter.project }}_static:
-    name: {{ cookiecutter.project }}_static
-  {{ cookiecutter.project }}_media:
-    name: {{ cookiecutter.project }}_media
-  {{ cookiecutter.project }}_db:
-    name: {{ cookiecutter.project }}_db
-  {{ cookiecutter.project }}_redis:
-    name: {{ cookiecutter.project }}_redis
-
 services:
+{% if cookiecutter.project_type in ['standard','advanced'] -%}
   {{ cookiecutter.project }}-nginx:
     image: nginx:1.27-alpine
     container_name: {{ cookiecutter.project }}-nginx
@@ -107,7 +91,9 @@ services:
     networks:
       - {{ cookiecutter.project }}-network
     restart: unless-stopped
+{%- endif %}
 
+{% if cookiecutter.project_type == 'advanced' -%}
   celery-worker:
     image: {{ cookiecutter.project }}:latest
     container_name: {{ cookiecutter.project }}-celery-worker
@@ -151,3 +137,23 @@ services:
     networks:
       - {{ cookiecutter.project }}-network
     restart: unless-stopped
+{%- endif %}
+
+{% if cookiecutter.project_type in ['standard','advanced'] -%}
+networks:
+  nginx-network:
+    external: true
+  {{ cookiecutter.project }}-network:
+    driver: bridge
+    internal: true
+
+volumes:
+  {{ cookiecutter.project }}_static:
+    name: {{ cookiecutter.project }}_static
+  {{ cookiecutter.project }}_media:
+    name: {{ cookiecutter.project }}_media
+  {{ cookiecutter.project }}_db:
+    name: {{ cookiecutter.project }}_db
+  {{ cookiecutter.project }}_redis:
+    name: {{ cookiecutter.project }}_redis
+{%- endif %}

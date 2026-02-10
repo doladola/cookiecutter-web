@@ -26,13 +26,16 @@ def create_virtualenv_and_install_dependencies():
     
     print("INFO: Add dependences...")
     # 添加基础依赖列表
-    dependences = ["django==5.2.5","gunicorn","django-environ","uvicorn",'django-ninja']
+    dependences = ["django==5.2.5","gunicorn","django-environ",'django-ninja']
     # 添加数据库和缓存依赖
-    if {{ cookiecutter.project_type }} in ['standard','advanced'] :
+    if {{ cookiecutter.project_type }} == 'standard':
         dependences.extend(['redis','hiredis',"psycopg[binary]"])
     # 添加任务队列依赖
     if {{ cookiecutter.project_type }} == 'advanced':
-        dependences.extend(['celery','django-celery-beat'])
+        dependences.extend(['redis','hiredis',"psycopg[binary]",'celery','django-celery-beat'])
+    # 是否使用异步
+    if {{ cookiecutter.use_async }}:
+        dependences.extend(['uvicorn','httpx'])
     # 是否使用sentry
     if {{ cookiecutter.use_sentry }}:
         dependences.extend(['sentry-sdk[django]'])

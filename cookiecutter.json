@@ -16,9 +16,11 @@
 		"zh-hans"
 	],
 	"use_async": false,
-	"use_ninja": false,
-	"use_redis": false,
-	"use_celery": false,
+	"project_type": [
+		"basic",
+		"standard",
+		"advanced"
+	],
 	"use_sentry": false,
 	"__prompts__": {
 		"platform": {
@@ -35,6 +37,12 @@
 			"__prompt__": "选择项目语言",
 			"en-us": "English",
 			"zh-hans": "Chinese"
+		},
+		"project_type": {
+			"__prompt__": "选择项目类型",
+			"basic": "基础版（仅API服务）",
+			"standard": "标准版（含数据库、缓存）",
+			"advanced": "高级版（含任务队列、定时任务）"
 		}
 	}
 }

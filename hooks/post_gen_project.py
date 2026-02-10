@@ -12,7 +12,7 @@ def set_secret_key(length=50):
     if os.path.exists(env_file_path):
         with open(env_file_path, "r", encoding="utf-8") as f:
             content = f.read()
-        content = content.replace("replace-with-a-secure-secret-key",secret_key,1)
+        content = content.replace("replace-with-your-secret-key",secret_key,1)
         with open(env_file_path, "w", encoding="utf-8") as f:
             f.write(content)
         print("INFO: SECRET_KEY updated in .env.example file.")
@@ -25,17 +25,14 @@ def create_virtualenv_and_install_dependencies():
     print(subprocess.run(['uv','venv'],check=True,capture_output=True,text=True,encoding='utf-8'))
     
     print("INFO: Add dependences...")
-    # 添加依赖列表
-    dependences = ["django==5.2.5","gunicorn","psycopg[binary]","django-environ"]
-    # 是否启动Redis缓存
-    if {{ cookiecutter.use_redis }}:
-        dependences.extend(['redis','hiredis'])
-    # 是否使用Celery队列
-    if {{ cookiecutter.use_celery }}:
-        dependences.extend(['celery','django-celery-beat','redis','hiredis'])
-    # 是否使用ninja
-    if {{ cookiecutter.use_ninja }}:
-        dependences.extend(['django-ninja'])
+    # 添加基础依赖列表
+    dependences = ["django==5.2.5","gunicorn","django-environ","uvicorn",'django-ninja']
+    # 添加数据库和缓存依赖
+    if {{ cookiecutter.project_type }} in ['standard','advanced'] :
+        dependences.extend(['redis','hiredis',"psycopg[binary]"])
+    # 添加任务队列依赖
+    if {{ cookiecutter.project_type }} == 'advanced':
+        dependences.extend(['celery','django-celery-beat'])
     # 是否使用sentry
     if {{ cookiecutter.use_sentry }}:
         dependences.extend(['sentry-sdk[django]'])

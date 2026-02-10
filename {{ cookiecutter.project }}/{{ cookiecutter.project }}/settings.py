@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    {% if cookiecutter.use_celery -%}
+    {% if cookiecutter.project_type == 'advanced' -%}
     'django_celery_beat',
     {%- endif %}
 ]
@@ -85,7 +85,8 @@ WSGI_APPLICATION = '{{ cookiecutter.project }}.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+{# 设置PG数据库和redis缓存 #}
+{% if cookiecutter.project_type in ['standard','advanced'] -%}
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -98,7 +99,6 @@ DATABASES = {
     }
 }
 
-{% if cookiecutter.use_redis -%}
 # cache setting
 CACHES = {
     "default": {
@@ -107,6 +107,7 @@ CACHES = {
     }
 }
 {%- endif %}
+{# 这里没有处理无postgresql和redis的情况 #}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -189,7 +190,7 @@ LOGGING = {
     },
 }
 
-{% if cookiecutter.use_celery -%}
+{% if cookiecutter.project_type == 'advanced' -%}
 # Celery 配置
 CELERY_BROKER_URL = env("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND")
@@ -204,7 +205,7 @@ CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 {% if cookiecutter.use_sentry -%}
 # sentry 配置
-SENTRY_DSN = env("SENTRY_DSN", default="")
+SENTRY_DSN = env("SENTRY_DSN")
 if SENTRY_DSN:
 
     sentry_params = {"dsn": SENTRY_DSN, "send_default_pii": True}

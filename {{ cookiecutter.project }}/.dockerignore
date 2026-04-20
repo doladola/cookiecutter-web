@@ -2,22 +2,12 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.venv/
 .idea/
 .vscode/
 .git/
 .pytest_cache/
-
-*.md
-*.sqlite3
-*.log
 .env
-.env.example
-.gitignore
-.python-version
-cmd.sh
 
-deploy/
 log/
 media/
-static/
+staticfiles/

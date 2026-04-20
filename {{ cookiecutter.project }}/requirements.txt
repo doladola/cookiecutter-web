@@ -1,0 +1,9 @@
+Django==5.2.5
+celery
+django-celery-beat
+django-environ
+django-htmx
+gunicorn
+psycopg[binary]
+redis
+sentry-sdk[django]

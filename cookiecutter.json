@@ -3,9 +3,8 @@
 	"description": "This Is My Awesome Project!",
 	"author": "Your Name",
 	"email": "your.email@example.com",
-	"platform": [
-		"linux",
-		"windows"
+	"_copy_without_render": [
+		"**/*.html"
 	],
 	"timezone": [
 		"UTC",
@@ -15,18 +14,7 @@
 		"en-us",
 		"zh-hans"
 	],
-	"project_type": [
-		"standard",
-		"advanced"
-	],
-	"use_async": false,
-	"use_sentry": false,
 	"__prompts__": {
-		"platform": {
-			"__prompt__": "选择开发平台",
-			"linux": "Linux",
-			"windows": "Windows"
-		},
 		"timezone": {
 			"__prompt__": "选择项目时区",
 			"UTC": "UTC",
@@ -36,11 +24,6 @@
 			"__prompt__": "选择项目语言",
 			"en-us": "English",
 			"zh-hans": "Chinese"
-		},
-		"project_type": {
-			"__prompt__": "选择项目类型",
-			"standard": "标准版（含数据库、缓存）",
-			"advanced": "高级版（含任务队列、定时任务）"
 		}
 	}
 }

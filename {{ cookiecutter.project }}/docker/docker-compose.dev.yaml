@@ -1,47 +1,78 @@
 services:
   db:
-    image: postgres:15-alpine
-    container_name: {{ cookiecutter.project }}-dev-db
-    env_file: 
+    image: postgres:16-alpine
+    env_file:
       - ../.env
     environment:
-      POSTGRES_DB: ${DB_NAME:-{{ cookiecutter.project }}}
-      POSTGRES_USER: ${DB_USER:-{{ cookiecutter.project }}}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-{{ cookiecutter.project }}}
-    ports:
-      - "5432:5432"   # 本机连接: localhost:5432
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - {{ cookiecutter.project }}_db:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-{{ cookiecutter.project }}} -d ${DB_NAME:-{{ cookiecutter.project }}}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - {{ cookiecutter.project }}-network
 
   redis:
-    image: redis:7.4.5-alpine
-    container_name: {{ cookiecutter.project }}-dev-redis
-    env_file:
-      - ../.env
+    image: redis:7-alpine
     command: ["redis-server", "--appendonly", "yes"]
-    ports:
-      - "6379:6379"   # 本机连接: localhost:6379
     volumes:
-      - {{ cookiecutter.project }}_redis:/data
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - {{ cookiecutter.project }}-network
+
+  web:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    env_file:
+      - ../.env
+    command: ["web-dev"]
+    volumes:
+      - ..:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery-worker:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    env_file:
+      - ../.env
+    command: ["celery-worker"]
+    volumes:
+      - ..:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery-beat:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    env_file:
+      - ../.env
+    command: ["celery-beat"]
+    volumes:
+      - ..:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
-  {{ cookiecutter.project }}_db:
-  {{ cookiecutter.project }}_redis:
-
-networks:
-  {{ cookiecutter.project }}-network:
-    driver: bridge
+  db_data:
+  redis_data:

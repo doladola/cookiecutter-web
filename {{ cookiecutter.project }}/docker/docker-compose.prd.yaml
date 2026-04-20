@@ -1,159 +1,94 @@
 services:
-{% if cookiecutter.project_type in ['standard','advanced'] -%}
-  {{ cookiecutter.project }}-nginx:
-    image: nginx:1.27-alpine
-    container_name: {{ cookiecutter.project }}-nginx
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - {{ cookiecutter.project }}_static:/var/www/static
-      - {{ cookiecutter.project }}_media:/var/www/media
-    networks:
-      - nginx-network
-      - {{ cookiecutter.project }}-network
-    depends_on:
-      web:
-        condition: service_started
-    healthcheck:
-      test: ["CMD-SHELL", "nginx -t >/dev/null 2>&1 || exit 1"] 
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    restart: unless-stopped
-
   db:
-    image: postgres:15-alpine
-    container_name: {{ cookiecutter.project }}-db
+    image: postgres:16-alpine
     env_file:
-      - .env
+      - ../.env
     environment:
-      POSTGRES_DB: ${DB_NAME:-{{ cookiecutter.project }}}
-      POSTGRES_USER: ${DB_USER:-{{ cookiecutter.project }}}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-{{ cookiecutter.project }}}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - {{ cookiecutter.project }}_db:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     healthcheck:
-      # 更新 healthcheck 以使用新端口
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-{{ cookiecutter.project }}} -d ${DB_NAME:-{{ cookiecutter.project }}}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - {{ cookiecutter.project }}-network
     restart: unless-stopped
 
   redis:
-    image: redis:7.4.5-alpine
-    container_name: {{ cookiecutter.project }}-redis
+    image: redis:7-alpine
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
-      - {{ cookiecutter.project }}_redis:/data
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - {{ cookiecutter.project }}-network
     restart: unless-stopped
 
   web:
-    image: {{ cookiecutter.project }}:latest
     build:
       context: ..
       dockerfile: Dockerfile
-      tags:
-        - {{ cookiecutter.project }}:${VERSION:-0.1.0}
-        - {{ cookiecutter.project }}:latest
-    container_name: {{ cookiecutter.project }}
-    env_file: .env
-    environment:
-      DB_HOST: db
-      REDIS_HOST: redis
-      FORCE_SCRIPT_NAME: /{{ cookiecutter.project }}
-    working_dir: /app
+    env_file:
+      - ../.env
+    command: ["web-prod"]
+    volumes:
+      - staticfiles:/app/staticfiles
+      - media:/app/media
     expose:
       - "8000"
-    volumes:
-      - {{ cookiecutter.project }}_static:/app/static
-      - {{ cookiecutter.project }}_media:/app/media
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "python manage.py migrate --check"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    networks:
-      - {{ cookiecutter.project }}-network
     restart: unless-stopped
-{%- endif %}
 
-{% if cookiecutter.project_type == 'advanced' -%}
   celery-worker:
-    image: {{ cookiecutter.project }}:latest
-    container_name: {{ cookiecutter.project }}-celery-worker
+    build:
+      context: ..
+      dockerfile: Dockerfile
     env_file:
-      - .env
-    environment:
-      DB_HOST: db
-      REDIS_HOST: redis
-    working_dir: /app
-    entrypoint: []
-    command: celery -A {{ cookiecutter.project }} worker -l info
+      - ../.env
+    command: ["celery-worker"]
     depends_on:
-      web:
-        condition: service_healthy
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks:
-      - {{ cookiecutter.project }}-network
     restart: unless-stopped
 
   celery-beat:
-    image: {{ cookiecutter.project }}:latest
-    container_name: {{ cookiecutter.project }}-celery-beat
+    build:
+      context: ..
+      dockerfile: Dockerfile
     env_file:
-      - .env
-    environment:
-      DB_HOST: db
-      REDIS_HOST: redis
-    working_dir: /app
-    entrypoint: []
-    command: celery -A {{ cookiecutter.project }} beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+      - ../.env
+    command: ["celery-beat"]
     depends_on:
-      web:
-        condition: service_healthy
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks:
-      - {{ cookiecutter.project }}-network
     restart: unless-stopped
-{%- endif %}
 
-{% if cookiecutter.project_type in ['standard','advanced'] -%}
-networks:
-  nginx-network:
-    external: true
-  {{ cookiecutter.project }}-network:
-    driver: bridge
-    internal: true
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - staticfiles:/app/staticfiles:ro
+      - media:/app/media:ro
+    depends_on:
+      - web
+    restart: unless-stopped
 
 volumes:
-  {{ cookiecutter.project }}_static:
-    name: {{ cookiecutter.project }}_static
-  {{ cookiecutter.project }}_media:
-    name: {{ cookiecutter.project }}_media
-  {{ cookiecutter.project }}_db:
-    name: {{ cookiecutter.project }}_db
-  {{ cookiecutter.project }}_redis:
-    name: {{ cookiecutter.project }}_redis
-{%- endif %}
+  db_data:
+  redis_data:
+  staticfiles:
+  media:

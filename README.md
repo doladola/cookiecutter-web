@@ -1,57 +1,74 @@
-# 项目简介
-Django项目脚手架，用于快速创建Django web项目。
+# cookiecutter-web
 
-## 使用方法
+一个 **固定技术栈、Linux-only、对 Copilot CLI 友好的 Django 项目模板**。
+
+生成结果默认包含：
+
+- Django
+- PostgreSQL
+- Redis
+- Celery + django-celery-beat
+- HTMX + Alpine.js
+- Tailwind CSS（开发期走 CDN）
+- Docker
+- Nginx（生产环境静态文件服务）
+- Sentry
+
+## 设计原则
+
+- **固定栈**：不再通过模板开关组合不同技术栈
+- **少变量**：Cookiecutter 只负责项目元数据，不承担复杂分支逻辑
+- **Docker-only 开发**：生成项目默认在容器内运行 web / worker / beat / db / redis
+- **低副作用渲染**：模板渲染不再自动创建虚拟环境、安装依赖或初始化 Git
+- **无 post-gen 副作用**：仓库只保留 `hooks/pre_gen_project.py` 做输入校验，不再依赖 `post_gen_project.py`
+- **可验证**：模板仓库提供渲染校验脚本，方便人工和 Copilot CLI 调试
+
+## 渲染模板
+
 ```sh
-# 基于uv
 uvx cookiecutter -f cookiecutter-web/
 ```
 
-## 核心信息
-1. Django版本
+## 校验模板
 
-    项目基于Django(5.2.2)版本，未测试其他版本兼容性。
+```sh
+python tools/validate_template.py
+```
 
-2. 版本管理
+该脚本会：
 
-    项目基于`uv`构建版本管理。
+1. 渲染一个临时项目
+2. 检查关键文件是否存在
+3. 运行开发 / 生产 compose 配置校验
 
-3. 部署方式
+## 模板输入
 
-    项目基于docker部署，自动启动web服务依赖的数据库、缓存、任务队列等依赖。
-    部署结构上采取两级nginx级联。
-    一级nginx用于不同web服务请求的动态转发。
-    二级nginx用于向本项目的web服务转发动态请求，并提供本项目的静态文件服务。
+当前模板只保留少量项目元数据：
 
-    > WHY？
-    > - 独立性：两级级联的方式能最大限度隔离不同项目。
-    > - 统一性：两级级联的方式能统一管理服务器上的请求。
+- `project`
+- `description`
+- `author`
+- `email`
+- `timezone`
+- `language`
 
+## 生成项目工作流
 
-## 功能简介
-- 自动配置：脚手架自动配置数据库、缓存、任务队列、日志监控等
-- 环境配置：脚手架提供了本地开发的环境配置，支持一件创建本地研发环境
-- 部署配置：脚手架提供了服务部署的配置、脚本和说明，减少项目部署的难度
+生成后的项目统一通过 `cmd.sh` 操作；不要再文档化宿主机 `python`、`pip`、虚拟环境或可选技术栈分支。
 
+```sh
+./cmd.sh bootstrap
+./cmd.sh dev up
+./cmd.sh manage migrate
+./cmd.sh test
+./cmd.sh prod up
+```
 
-## 后续计划
-- 支持异步框架
-- 支持无数据库模式
+## 仓库结构
 
-## 版本计划
-
-### 260201版本计划
-- 新功能：
-- [ ] 支持异步框架  
-- [ ] 配置AI辅助编程通用配置  
-- [ ] 项目中有两个.env文件，容易造成内容不一致  
-- [x] setting中检测报错  
-- [x] 移除文件方式记录log日志  
-- [x] 日志等级通过环境变量`LOG_LEVEL`配置，默认为`INFO`  
-
-- 功能更改：
-- [ ] 简化操作配置：项目默认支持数据库、缓存，提供两个选项：
-    - 选项一：标准版，支持数据库、缓存
-    - 选项二：高级版，支持数据库、缓存、任务队列
-- [ ] 
+- `cookiecutter.json`：模板输入定义
+- `hooks/`：渲染前校验
+- `{{ cookiecutter.project }}/`：生成项目骨架
+- `tools/validate_template.py`：模板渲染校验脚本
+- `.github/copilot-instructions.md`：面向 Copilot 会话的仓库说明
 

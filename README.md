@@ -29,6 +29,14 @@
 uvx cookiecutter -f cookiecutter-web/
 ```
 
+## 默认维护环境
+
+推荐优先在仓库自带的 **devcontainer** 中维护模板，再运行 Copilot CLI：
+
+- 基础镜像：`mcr.microsoft.com/devcontainers/python:3.12-bookworm`
+- 预装能力：Copilot CLI、GitHub CLI、Docker 访问工具
+- 模板校验入口：`python tools/validate_template.py`
+
 ## 校验模板
 
 ```sh
@@ -40,6 +48,8 @@ python tools/validate_template.py
 1. 渲染一个临时项目
 2. 检查关键文件是否存在
 3. 运行开发 / 生产 compose 配置校验
+4. 启动渲染项目的依赖栈并运行 Django checks / tests / starter stack 校验
+5. 启动渲染项目的 web 服务并执行 HTTP smoke check
 
 ## 模板输入
 
@@ -54,19 +64,21 @@ python tools/validate_template.py
 
 ## 生成项目工作流
 
-生成后的项目统一通过 `cmd.sh` 操作；不要再文档化宿主机 `python`、`pip`、虚拟环境或可选技术栈分支。
+生成后的项目默认也带有 devcontainer，并保留一层很薄的高价值命令入口；不要再文档化宿主机 `python`、`pip`、虚拟环境或可选技术栈分支。
 
 ```sh
 ./cmd.sh bootstrap
 ./cmd.sh dev up
 ./cmd.sh manage migrate
 ./cmd.sh test
+./cmd.sh verify
 ./cmd.sh prod up
 ```
 
 ## 仓库结构
 
 - `cookiecutter.json`：模板输入定义
+- `.devcontainer/`：模板仓库维护环境
 - `hooks/`：渲染前校验
 - `{{ cookiecutter.project }}/`：生成项目骨架
 - `tools/validate_template.py`：模板渲染校验脚本

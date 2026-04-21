@@ -12,13 +12,17 @@
 - Nginx（生产环境）
 - Sentry
 
-生成项目默认 **Linux-only**，并采用 **Docker-only 开发模式**。
+生成项目默认 **Linux-only**，并采用 **Docker-only 开发模式**。模板仓库与生成项目都带有 devcontainer；优先在容器内运行 Copilot CLI，而不是在宿主机临时手装一套工具链。
 
 ## 常用命令
 
 ### 模板仓库
 
 ```sh
+# 在 devcontainer 中维护模板（推荐）
+# 然后运行 Copilot CLI
+copilot
+
 # 渲染模板
 uvx cookiecutter -f cookiecutter-web/
 
@@ -29,6 +33,8 @@ python tools/validate_template.py
 ### 生成后的 Django 项目
 
 ```sh
+# 在生成项目自带的 devcontainer 中开发（推荐）
+
 # 初始化 .env（也可省略；dev/prod/manage/test 会自动补齐）
 ./cmd.sh bootstrap
 
@@ -47,6 +53,9 @@ python tools/validate_template.py
 
 # 运行测试
 ./cmd.sh test
+
+# 执行完整 starter stack 校验
+./cmd.sh verify
 
 # 启动生产编排
 ./cmd.sh prod up
@@ -68,10 +77,12 @@ python tools/validate_template.py
 - 开发环境通过 `docker/docker-compose.dev.yaml` 启动 `web`、`db`、`redis`、`celery-worker`、`celery-beat`。
 - 生产环境通过 `docker/docker-compose.prd.yaml` 在开发栈基础上增加 `nginx`，由 Nginx 负责静态文件和反向代理。
 - `entrypoint.sh` 按命令模式启动 `web-dev`、`web-prod`、`celery-worker`、`celery-beat`，避免为每个服务维护不同镜像逻辑。
+- 生成项目的 `.devcontainer/devcontainer.json` 提供一套专用工具容器，用于运行 Copilot CLI、GitHub CLI 和 Docker 命令，但不替代应用运行镜像。
 
 ### 3. 前端与应用骨架
 
 - `core` 是默认 starter app，并提供首页、HTMX partial 示例、Alpine.js 交互示例。
+- `core` 还提供一层有意保留的 starter verification surface：少量可见 demo，加上更深入的 tests / management command 验证 PostgreSQL、Redis 和 Celery 连通性。
 - Tailwind 在开发阶段通过 CDN 提供，避免引入额外前端构建复杂度。
 - `{{ cookiecutter.project }}/{{ cookiecutter.project }}/settings.py` 已固定接入 PostgreSQL、Redis、Celery、Sentry 与 `django-htmx`。
 
@@ -80,6 +91,8 @@ python tools/validate_template.py
 - 这是模板仓库，修改 `{{ cookiecutter.project }}` 下的文件时要保留 `{{ ... }}` 占位语法，不能替换成具体项目名或固定值。
 - 该仓库现在是 **固定栈模板**；不要重新引入 `project_type`、`use_async`、`use_sentry` 之类的组合开关。
 - 生成项目使用单一 `.env.example` 作为环境变量事实源；变更配置时，应同步检查 `.env.example`、`settings.py`、`docker-compose` 与 README。
+- 生成项目中的 demo 代码是模板验证表面，不要把它扩展成业务逻辑；更深入的依赖校验应尽量放在 tests 或 management command 里。
 - Docker-only 开发是默认路径；除非用户明确要求，不要回退到“宿主机跑 Django、容器只跑依赖”的模式。
-- 生成项目命令统一走 `./cmd.sh {bootstrap|dev|prod|manage|test}`；不要编造宿主机 `python manage.py`、`pip install -r requirements.txt` 或其他非容器化主流程。
-- 模板调试应优先使用 `tools/validate_template.py` 进行渲染与 compose 校验，而不是手工推断生成结果。
+- 生成项目命令统一走 `./cmd.sh {bootstrap|dev|prod|manage|test|verify}`；不要编造宿主机 `python manage.py`、`pip install -r requirements.txt` 或其他非容器化主流程。
+- `cmd.sh` 保留为一层薄包装，重点服务 orchestration 和 verify；如需深入调试，可直接使用底层 `docker compose` 命令。
+- 模板调试应优先使用 `tools/validate_template.py` 进行渲染与真实运行校验，而不是手工推断生成结果。

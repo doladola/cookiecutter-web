@@ -1,0 +1,18 @@
+<div class="grid gap-4 md:grid-cols-2">
+    <div class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">PostgreSQL ready</p>
+        <p class="mt-2 text-sm text-slate-200">
+            Probe record #{{ snapshot.probe_id }} stored successfully. Starter probe rows: {{ snapshot.probe_count }}.
+        </p>
+        {% if snapshot.probe_created %}
+        <p class="mt-2 text-xs text-slate-400">The starter probe row was created during this request.</p>
+        {% endif %}
+    </div>
+
+    <div class="rounded-xl border border-sky-500/30 bg-sky-500/10 p-4">
+        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-sky-300">Redis ready</p>
+        <p class="mt-2 text-sm text-slate-200">
+            Cache key <code>{{ snapshot.cache_key }}</code> returned <code>{{ snapshot.cache_value }}</code>.
+        </p>
+    </div>
+</div>

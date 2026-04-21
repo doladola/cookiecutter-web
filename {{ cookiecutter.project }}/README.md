@@ -17,6 +17,8 @@
 ## 快速开始
 
 ```sh
+# 推荐先在项目自带的 devcontainer 中打开仓库，再运行 Copilot CLI / Docker 命令
+
 ./cmd.sh bootstrap
 ./cmd.sh dev up
 ```
@@ -49,6 +51,9 @@
 # 运行测试
 ./cmd.sh test
 
+# 运行完整 starter stack 校验
+./cmd.sh verify
+
 # 启动生产编排
 ./cmd.sh prod up
 
@@ -60,6 +65,7 @@
 
 ```text
 .
+├── .devcontainer/                Copilot CLI / GitHub CLI / Docker 工具容器
 ├── core/                         starter app
 ├── docker/                       Docker Compose 与 Nginx 配置
 ├── {{ cookiecutter.project }}/   Django project package
@@ -73,9 +79,11 @@
 
 ## 开发约定
 
+- 优先在项目自带的 **devcontainer** 中开发，再运行 Copilot CLI
 - 开发模式为 **Docker-only**
-- 项目命令统一走 `./cmd.sh {bootstrap|dev|prod|manage|test}`
+- 项目命令统一走 `./cmd.sh {bootstrap|dev|prod|manage|test|verify}`
 - `core` 是默认 starter app
 - HTMX、Alpine.js、Tailwind 已在基础模板中接入
+- `core` 中的 starter demo 会展示 PostgreSQL / Redis 的基础连通性；更深入的 PostgreSQL / Redis / Celery 校验走 `./cmd.sh verify`
 - Tailwind 在开发阶段通过 CDN 提供；生产阶段可再增加单独构建脚本
 - Sentry 默认启用集成代码，但只有设置 `SENTRY_DSN` 后才会上报

@@ -7,12 +7,13 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 usage() {
-    echo -e "${YELLOW}用法:${NC} $0 {bootstrap|dev|prod|manage|test}"
+    echo -e "${YELLOW}用法:${NC} $0 {bootstrap|dev|prod|manage|test|verify}"
     echo "  bootstrap              - 若 .env 不存在，则从 .env.example 创建"
     echo "  dev up|down|logs|shell - 开发环境"
     echo "  prod up|down|logs      - 生产编排"
     echo "  manage <args...>       - 在开发 web 容器中执行 manage.py"
     echo "  test                   - 在开发 web 容器中运行测试"
+    echo "  verify                 - 运行 Django checks、tests 和 starter stack 校验"
     exit 1
 }
 
@@ -88,6 +89,13 @@ case "${1:-}" in
     test )
         bootstrap
         compose_dev run --rm web python manage.py test
+        ;;
+    verify )
+        bootstrap
+        compose_dev up --build -d db redis celery-worker celery-beat
+        compose_dev run --rm web python manage.py check
+        compose_dev run --rm web python manage.py test
+        compose_dev run --rm web python manage.py verify_stack
         ;;
     * )
         usage

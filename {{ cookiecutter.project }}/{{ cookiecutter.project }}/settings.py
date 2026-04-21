@@ -7,6 +7,7 @@ import sentry_sdk
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(
+    APP_PORT=(int, 8000),
     DEBUG=(bool, False),
     DB_PORT=(int, 5432),
     DB_CONN_MAX_AGE=(int, 60),
@@ -17,8 +18,12 @@ environ.Env.read_env(BASE_DIR / ".env")
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
+APP_PORT = env("APP_PORT")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
-CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["http://localhost:8000"])
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=[f"http://localhost:{APP_PORT}", f"http://127.0.0.1:{APP_PORT}"],
+)
 
 INSTALLED_APPS = [
     "django.contrib.admin",

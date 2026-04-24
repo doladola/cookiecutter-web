@@ -32,7 +32,7 @@
 - `{{ cookiecutter.project }}` is the template for the generated Django project. Files under this tree are not a live app in this repository; they are copied with Jinja substitutions and conditionals applied.
 - The generated project starts as a minimal Django project (`manage.py`, `{{ cookiecutter.project }}/settings.py`, `urls.py`, `wsgi.py`, `asgi.py`) plus deployment assets (`docker/`, `Dockerfile`, `entrypoint.sh`, `cmd.sh`, env examples, generated README).
 - Optional capabilities are split across template conditionals and post-generation dependency installation:
-  - Redis and Celery are wired through settings/env/compose plus dependency installation in `post_gen_project.py`.
+  - Redis and Celery are treated as built-in defaults: the generated project always includes their dependencies and base wiring.
   - Sentry is conditionally imported and initialized in `settings.py`.
   - Django Ninja is installed by the post-generation hook and documented in the generated README.
 - Deployment is Docker-first:
@@ -44,13 +44,13 @@
 ## Key conventions
 
 - Treat `{{ cookiecutter.project }}/README.md` as shipped product documentation. If template commands, env files, feature flags, or deployment flow change, update that README with the code changes.
-- Feature flags are cross-cutting. Changes to `use_ninja`, `use_redis`, `use_celery`, or `use_sentry` usually require coordinated edits in:
+- Feature flags are cross-cutting. Changes to user-facing flags like `use_ninja` or `use_sentry`, or to the internal always-on Redis/Celery wiring, usually require coordinated edits in:
   - `cookiecutter.json`
   - `hooks/pre_gen_project.py`
   - `hooks/post_gen_project.py`
   - Jinja-conditional template files under `{{ cookiecutter.project }}`
   - Generated-project README examples
-- `use_celery` depends on Redis. The pre-generation hook rejects `use_celery=true` unless `use_redis=true`.
+- Redis and Celery are no longer user-facing feature flags; treat their settings, dependencies, and Celery app wiring as always-on parts of the generated project.
 - Dependencies are intentionally added after generation with `uv add --link-mode=copy` in `hooks/post_gen_project.py`; `pyproject.toml` is only a minimal starting point.
 - Environment configuration is split by runtime:
   - `{{ cookiecutter.project }}\.env.example` is the generated project's root env template used for local development and direct Django commands.

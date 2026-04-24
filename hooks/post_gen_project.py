@@ -26,13 +26,16 @@ def create_virtualenv_and_install_dependencies():
     
     print("INFO: Add dependences...")
     # 添加依赖列表
-    dependences = ["django==5.2.5","gunicorn","psycopg[binary]","django-environ"]
-    # 是否启动Redis缓存
-    if {{ cookiecutter.use_redis }}:
-        dependences.extend(['redis','hiredis'])
-    # 是否使用Celery队列
-    if {{ cookiecutter.use_celery }}:
-        dependences.extend(['celery','django-celery-beat','redis','hiredis'])
+    dependences = [
+        "django==5.2.5",
+        "gunicorn",
+        "psycopg[binary]",
+        "django-environ",
+        "redis",
+        "hiredis",
+        "celery",
+        "django-celery-beat",
+    ]
     # 是否使用ninja
     if {{ cookiecutter.use_ninja }}:
         dependences.extend(['django-ninja'])

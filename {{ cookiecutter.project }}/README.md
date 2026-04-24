@@ -223,7 +223,7 @@ docker compose -f docker/docker-compose.dev.yaml down -v
 **注意**：创建APP后需要启用APP，操作步骤见 [快速开始](#快速开始)
 
 ### 创建API视图
-使用ninja可以再Django中创建类似FastApi的API。具体如下：
+如果生成项目时启用了 Ninja，可以在 Django 中创建类似 FastAPI 的 API。具体如下：
 
 在`myapp/views.py`文件中创建视图函数：
 
@@ -288,20 +288,7 @@ uv run manage.py runserver
 
 
 ### 创建Celery任务
-在`{{ cookiecutter.project }}`中创建`celery.py`文件，并添加以下内容：
-
-```py
-import os
-
-from celery import Celery
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{{ cookiecutter.project }}.settings')
-
-app = Celery('{{ cookiecutter.project }}')
-app.config_from_object('django.conf:settings', namespace='CELERY')
-app.autodiscover_tasks()
-
-```
+模板默认已经生成 `{{ cookiecutter.project }}/celery.py`，并默认安装了 Redis、Celery 和 `django-celery-beat`。因此这里只需要在 APP 中补充任务代码即可。
 
 在APP中创建`tasks.py`文件
 
@@ -396,20 +383,7 @@ http://localhost:8000/task-status/?task_id=9e0b6465-cff9-40f6-9cf8-1e9ccac159a2
 {"task_id": "9e0b6465-cff9-40f6-9cf8-1e9ccac159a2", "status": "SUCCESS", "result": 3}
 ```
 
-**注意**：如果要创建定时任务，需要在`settings.py`中添加如下配置：
-
-```py
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    # 在末尾添加
-    'django_celery_beat',
-]
-```
+**注意**：模板已默认启用 `django_celery_beat`，如果要创建定时任务，可直接继续配置 Beat 调度任务，无需再手动修改 `INSTALLED_APPS`。
 
 ### 示例
 

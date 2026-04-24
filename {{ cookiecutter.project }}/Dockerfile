@@ -1,10 +1,10 @@
-FROM python:3.12-slim
+FROM astral/uv:python3.13-trixie-slim
 
 WORKDIR /app
 
 # 安装依赖
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -i https://mirrors.bfsu.edu.cn/pypi/web/simple -r requirements.txt
+RUN uv pip install --system --no-cache --requirement requirements.txt
 
 # 设置环境变量
 ENV DEBUG=False

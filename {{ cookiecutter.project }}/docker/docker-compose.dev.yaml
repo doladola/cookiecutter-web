@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: {{ cookiecutter.project }}-dev-db
     env_file: 
       - ../.env
@@ -21,7 +21,7 @@ services:
       - {{ cookiecutter.project }}-network
 
   redis:
-    image: redis:7.4.5-alpine
+    image: redis:7-alpine
     container_name: {{ cookiecutter.project }}-dev-redis
     env_file:
       - ../.env

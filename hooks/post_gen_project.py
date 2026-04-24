@@ -27,7 +27,7 @@ def create_virtualenv_and_install_dependencies():
     print("INFO: Add dependences...")
     # 添加依赖列表
     dependences = [
-        "django==5.2.5",
+        "django>=6.0,<6.1",
         "gunicorn",
         "psycopg[binary]",
         "django-environ",

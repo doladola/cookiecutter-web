@@ -41,7 +41,7 @@ services:
     image: postgres:17-alpine
     container_name: {{ cookiecutter.project }}-db
     env_file:
-      - .env
+      - ../.env
     environment:
       POSTGRES_DB: ${DB_NAME:-{{ cookiecutter.project }}}
       POSTGRES_USER: ${DB_USER:-{{ cookiecutter.project }}}
@@ -82,8 +82,10 @@ services:
         - {{ cookiecutter.project }}:${VERSION:-0.1.0}
         - {{ cookiecutter.project }}:latest
     container_name: {{ cookiecutter.project }}
-    env_file: .env
+    env_file:
+      - ../.env
     environment:
+      DEBUG: "False"
       DB_HOST: db
       REDIS_HOST: redis
       FORCE_SCRIPT_NAME: /{{ cookiecutter.project }}
@@ -112,8 +114,9 @@ services:
     image: {{ cookiecutter.project }}:latest
     container_name: {{ cookiecutter.project }}-celery-worker
     env_file:
-      - .env
+      - ../.env
     environment:
+      DEBUG: "False"
       DB_HOST: db
       REDIS_HOST: redis
     working_dir: /app
@@ -134,8 +137,9 @@ services:
     image: {{ cookiecutter.project }}:latest
     container_name: {{ cookiecutter.project }}-celery-beat
     env_file:
-      - .env
+      - ../.env
     environment:
+      DEBUG: "False"
       DB_HOST: db
       REDIS_HOST: redis
     working_dir: /app

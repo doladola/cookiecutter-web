@@ -40,13 +40,12 @@ dev_env() {
 
 # 功能2: 构建项目镜像
 build_image() {
-    echo -e "${GREEN}导出依赖到 requirements.txt...${NC}"
-    uv export --format requirements-txt > requirements.txt
+    echo -e "${GREEN}使用 uv.lock 构建项目镜像...${NC}"
     echo -e "${GREEN}开始构建项目镜像...${NC}"
-    docker compose -f docker/docker-compose.prd.yaml --env-file docker/.env build web
+    docker compose -f docker/docker-compose.prd.yaml --env-file .env build web
     echo -e "${GREEN}镜像构建完成。${NC}"
     echo -e "${GREEN}清理悬空镜像...${NC}"
-    docker image prune
+    docker image prune -f
     echo -e "${GREEN}清理完成。${NC}"
 }
 
@@ -59,7 +58,7 @@ run_services() {
         echo -e "${GREEN}Nginx网络已存在，跳过创建。${NC}"
     fi
     echo -e "${GREEN}启动项目服务...${NC}"
-    docker compose -f docker/docker-compose.prd.yaml --env-file docker/.env up -d
+    docker compose -f docker/docker-compose.prd.yaml --env-file .env up -d
     echo -e "${GREEN}启动一级Nginx服务...${NC}"
     docker compose -f docker/nginx/docker-compose.yaml up -d
     echo -e "${GREEN}所有服务已启动。${NC}"
@@ -70,7 +69,7 @@ stop_services() {
     echo -e "${GREEN}停止一级Nginx服务...${NC}"
     docker compose -f docker/nginx/docker-compose.yaml down
     echo -e "${GREEN}停止项目服务...${NC}"
-    docker compose -f docker/docker-compose.prd.yaml --env-file docker/.env down -v
+    docker compose -f docker/docker-compose.prd.yaml --env-file .env down -v
     echo -e "${GREEN}所有服务已停止。${NC}"
     docker network rm nginx-network || true
     echo -e "${GREEN}Nginx网络已移除。${NC}"

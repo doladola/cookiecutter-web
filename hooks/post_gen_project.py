@@ -8,7 +8,7 @@ def set_secret_key(length=50):
     """Generate a random secret key."""
     print("INFO: Generating SECRET_KEY...")
     secret_key = secrets.token_urlsafe(50)
-    env_file_path = "docker/.env.example"
+    env_file_path = ".env.example"
     if os.path.exists(env_file_path):
         with open(env_file_path, "r", encoding="utf-8") as f:
             content = f.read()
@@ -24,7 +24,7 @@ def create_virtualenv_and_install_dependencies():
     print("INFO: Creating virtual environment with uv...")
     print(subprocess.run(['uv','venv'],check=True,capture_output=True,text=True,encoding='utf-8'))
     
-    print("INFO: Add dependences...")
+    print("INFO: Add dependencies...")
     # 添加依赖列表
     dependences = [
         "django>=6.0,<6.1",
@@ -43,7 +43,7 @@ def create_virtualenv_and_install_dependencies():
     if {{ cookiecutter.use_sentry }}:
         dependences.extend(['sentry-sdk[django]'])
     # 依赖去重
-    dependences = list(set(dependences))
+    dependences = list(dict.fromkeys(dependences))
 
     command = ['uv','add','--link-mode=copy'] + dependences
 

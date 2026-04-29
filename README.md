@@ -24,6 +24,7 @@
 
 - Django 项目基础结构（`settings.py`、`urls.py`、`asgi.py`、`wsgi.py`）
 - `uv` 驱动的 Python 项目配置与依赖安装流程
+- 基于 `uv.lock` 的 Docker 镜像构建流程
 - PostgreSQL、Redis、Celery、`django-celery-beat` 的基础接线
 - 本地开发用的 Docker Compose 配置
 - 面向部署的 Dockerfile、Compose、entrypoint 和 Nginx 配置示例
@@ -122,9 +123,11 @@ uv run celery -A <your-project-name> worker -l info
 
 ## 关键实现说明
 
-- 依赖不是直接写死在模板 `pyproject.toml` 中，而是在生成后由 `hooks/post_gen_project.py` 使用 `uv add --link-mode=copy` 注入
+- 依赖不是直接写死在模板 `pyproject.toml` 中，而是在生成后由 `hooks/post_gen_project.py` 使用 `uv add --link-mode=copy` 注入，并生成 `uv.lock`
+- 生成后的 Dockerfile 会直接基于 `pyproject.toml` + `uv.lock` 构建镜像
 - Redis 和 Celery 属于模板默认能力，不作为用户可选项关闭
-- 生成后的项目 README 会提供更细的项目内使用说明、环境变量说明和部署步骤
+- 生成后的项目使用一份根目录 `.env.example` 作为环境变量模板
+- 生成后的项目 README 只保留快速开始与入口说明，更详细的部署/结构文档位于 `docs/`
 
 ## 验证模板
 

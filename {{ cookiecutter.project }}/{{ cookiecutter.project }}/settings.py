@@ -186,6 +186,9 @@ if SENTRY_DSN:
     sentry_sdk.init(**sentry_params)
 {%- endif %}
 
+LOGFILE_PATH = BASE_DIR / env("LOGFILE", str, default='log/{{ cookiecutter.project }}.log')
+LOGFILE_PATH.parent.mkdir(parents=True, exist_ok=True)
+
 # 日志设置
 LOGGING = {
     'version': 1,
@@ -209,7 +212,7 @@ LOGGING = {
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'filters': [],
             'formatter': 'verbose',
-            'filename': BASE_DIR / env("LOGFILE", str, default='logs/{{ cookiecutter.project }}.log'),
+            'filename': LOGFILE_PATH,
             'encoding': 'utf-8',
             'when': 'midnight',  # 每天切割
             'interval': 1,

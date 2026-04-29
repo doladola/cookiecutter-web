@@ -2,9 +2,13 @@ FROM astral/uv:python3.13-trixie-slim
 
 WORKDIR /app
 
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+ENV PATH="/app/.venv/bin:$PATH"
+
 # 安装依赖
-COPY requirements.txt ./
-RUN uv pip install --system --no-cache --requirement requirements.txt
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked --no-install-project --no-dev
 
 # 设置环境变量
 ENV DEBUG=False
